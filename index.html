@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+</head>
+
+<body>
+    <div class="user-management">
+        <div class="header">
+            <h1>Quản Lý Người Dùng</h1>
+        </div>
+        <div class="content">
+            <div class="form_section">
+                <div class="search_section">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" class="search-input"
+                            placeholder="Tìm kiếm theo tên hoặc email...">
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn btn-primary" id="add-user-button">
+                        Thêm Người Dùng Mới
+                    </button>
+                </div>
+            </div>
+            <div id="users-container">
+                <div id="empty-state">
+                    <div class="empty-state">
+                        <h3>Chưa có người dùng nào</h3>
+                        <p>Hãy thêm người dùng đầu tiên của bạn!</p>
+                    </div>
+                </div>
+                <div id="users-grid" class="users-grid"></div>
+            </div>
+        </div>
+    </div>
+    <dialog id="user-dialog" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="dialog-title">Thêm Người Dùng Mới</h2>
+                <button class="close-btn" onclick="closeUserDialog()">×</button>
+            </div>
+            <form id="user-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Họ và Tên *</label>
+                        <input spellcheck="false" type="text" id="name" name="name">
+                        <div class="error-message" id="name-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email">
+                        <div class="error-message" id="email-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Số Điện Thoại *</label>
+                        <input type="tel" id="phone" name="phone">
+                        <div class="error-message" id="phone-error"></div>
+                    </div>
+                </div>
+                <div class="group_buttons">
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        Thêm Người Dùng
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeUserDialog()">
+                        Hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+    <dialog id="delete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Xác Nhận Xóa</h2>
+                <button class="close-btn">
+                    ×
+                </button>
+            </div>
+            <p class="delete-message">Bạn có chắc chắn muốn xóa người dùng này không?</p>
+            <div class="group_buttons">
+                <button class="btn btn-danger" id="confirm-delete">Xóa</button>
+                <button class="btn btn-secondary">
+                    Hủy
+                </button>
+            </div>
+        </div>
+    </dialog>
+    <script src="./script.js">
+    </script>
+</body>
+
+</html>
