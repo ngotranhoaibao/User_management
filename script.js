@@ -1,23 +1,50 @@
-// tạo biến users để lưu trữ danh sách người dùng
 let users = JSON.parse(localStorage.getItem("users")) || [];
-//tạo hàm saveUser để lưu người dùng vào localStorage
+const userOpenBtn = document.getElementById("add-user-button");
+const userDialog = document.getElementById("user-dialog");
+const userForm = document.getElementById("user-form");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const phoneInput = document.getElementById("phone");
+const userDialogTitle = document.getElementById("dialog-title");
+const userSubmitBtn = document.getElementById("submit-btn");
+let editingUserId = null;
+
 function saveUser() {
   localStorage.setItem("users", JSON.stringify(users));
 }
-//tạo function generate Id để tạo id ngẫu nhiên cho người dùng theo định dạng date time
+
 function generateId() {
   return Date.now().toString();
 }
-const openBtn = document.getElementById("add-user-button");
-const userDialog = document.getElementById("user-dialog");
-openBtn.addEventListener("click", () => userDialog.showModal());
+userOpenBtn.addEventListener("click", () => openUserDialog());
 
-//tạo function closeUserDialog để đóng hộp thoại thêm người dùng
+function openUserDialog(id = null) {
+  editingUserId = id;
+  if (editingUserId) {
+    const u = users.find((x) => x.id === editingUserId);
+    if (!u) return;
+
+    if (userDialogTitle) userDialogTitle.textContent = "Edit user";
+    if (userSubmitBtn) userSubmitBtn.textContent = "Save changes";
+
+    nameInput.value = u.name;
+    emailInput.value = u.email;
+    phoneInput.value = u.phone;
+  } else {
+    if (userDialogTitle) userDialogTitle.textContent = "Add user";
+    if (userSubmitBtn) userSubmitBtn.textContent = "Create user";
+    userForm.reset();
+  }
+  userDialog.show();
+}
+
 function closeUserDialog() {
   userDialog.close();
-  document.getElementById("user-form").reset();
+  userForm.reset();
+  editingUserId = null;
 }
-// Viết sự kiện submit addUser để thêm người dùng addEventListener cho submit form
+
+//viết sự kiện submit cho dialogform
 userDialog.addEventListener("submit", function (event) {
   event.preventDefault();
 
@@ -26,63 +53,48 @@ userDialog.addEventListener("submit", function (event) {
   const phone = document.getElementById("phone").value.trim();
 
   let isValidate = true;
-
-  // Reset lỗi trước
-  document.getElementById("name-error").innerText = "";
-  document.getElementById("email-error").innerText = "";
-  document.getElementById("phone-error").innerText = "";
-
-  //tạo Validate
   if (name.length < 2) {
     document.getElementById("name-error").innerText =
-      "Name must be at least 2 characters";
+      "Tên phải ≥ 2 ký tự";
     isValidate = false;
   }
 
   if (phone.length < 10 || phone.length > 11) {
     document.getElementById("phone-error").innerText =
-      "Phone number must be between 10 and 11 digits";
+      "SĐT phải 10–11 chữ số";
     isValidate = false;
   }
-  // Kiểm tra trùng tên và số điện thoại
-  const isDuplicate = users.some(
-    (user) =>
-      user.name.toLowerCase() === name.toLowerCase() && user.phone === phone
-  );
+  if (!isValidate) return;
 
-  if (isDuplicate) {
-    document.getElementById("phone-error").innerText =
-      "Người dùng với tên và số điện thoại này đã tồn tại";
-    isValidate = false;
+  if (editingUserId) {
+    const idx = users.findIndex((u) => u.id === editingUserId);
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], name, email, phone };
+    }
+  } else {
+    users.push({
+      id: generateId(),
+      name,
+      email,
+      phone,
+    });
   }
-
-  if (!isValidate) return;
-  if (!isValidate) return;
-
-  // Thêm người dùng mới
-  users.push({
-    id: generateId(),
-    name,
-    email,
-    phone,
-  });
 
   saveUser();
   closeUserDialog();
   renderUsers();
 });
 
-// renderUsers hiển thị danh sách người dùng
+// Hiển thị danh sách
 function renderUsers() {
   const usersGrid = document.getElementById("users-grid");
   const emptyState = document.getElementById("empty-state");
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const data = JSON.parse(localStorage.getItem("users")) || [];
 
   usersGrid.innerHTML = "";
   emptyState.innerHTML = "";
 
-  // Kiểm tra nếu không có người dùng nào thì hiển thị trạng thái rỗng
-  if (users.length === 0) {
+  if (data.length === 0) {
     emptyState.innerHTML = `
       <div class="empty-state">
         <h3>Chưa có người dùng nào</h3>
@@ -91,16 +103,20 @@ function renderUsers() {
     return;
   }
 
-  usersGrid.innerHTML = users
+  usersGrid.innerHTML = data
     .map(
-      (user, index) => `
+      (user) => `
         <div class="user-card">
           <h3>${user.name}</h3>
-          <p>Email: ${user.email}</p>
-          <p>Phone: ${user.phone}</p>
+          <p>Email: ${user.email || ""}</p>
+          <p>Phone: ${user.phone || ""}</p>
           <div class="user-actions">
-            <button class="btn btn-primary" >Edit</button>
-            <button class="btn btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+            <button class="btn btn-primary" onclick="openUserDialog('${
+              user.id
+            }')">Edit</button>
+            <button class="btn btn-danger" onclick="deleteUser('${
+              user.id
+            }')">Delete</button>
           </div>
         </div>
       `
@@ -108,15 +124,37 @@ function renderUsers() {
     .join("");
 }
 
-//tạo function deleteUser để xóa người dùng
+// Xoá user
 function deleteUser(userId) {
-  //tạo biến userIndex để lưu lại id cần xóa
   const userIndex = users.findIndex((u) => u.id === userId);
-  //lọc mảng users để xóa người dùng có id trùng với userId
-  users.splice(userIndex, 1);
-  //lưu lại mảng users vào localStorage
-  saveUser();
-  //gọi hàm renderUsers để hiển thị lại danh sách người dùng
-  renderUsers();
+  if (userIndex === -1) return;
+
+  const deleteModal = document.getElementById("delete-modal");
+  const confirmDeleteBtn = document.getElementById("confirm-delete");
+  const cancelBtn = document.getElementById("btn_cancel");
+
+  deleteModal.show();
+
+// hiện xác nhận xoá
+  confirmDeleteBtn.onclick = () => {
+    users.splice(userIndex, 1);
+    saveUser();
+    renderUsers();
+    deleteModal.close();
+  };
+  if (cancelBtn) {
+    cancelBtn.onclick = () => deleteModal.close();
+  }
+  deleteModal.onclick = (event) => {
+    if (event.target === deleteModal) deleteModal.close();
+  };
 }
+
+window.addEventListener("storage", function (event) {
+  if (event.key === "users") {
+    users = JSON.parse(event.newValue) || [];
+    renderUsers();
+  }
+});
+
 renderUsers();
